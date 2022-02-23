@@ -21,7 +21,7 @@ import android.widget.Button;
 import android.widget.SearchView;
 import android.widget.Spinner;
 
-import com.example.mapdemo2.databinding.ActivityMapsBinding;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -44,10 +44,12 @@ import java.util.Locale;
 //import com.example.mapdemo2.databinding.ActivityMapsBinding;
 
 public class MapsActivity extends FragmentActivity {
-   Button zoom_In, zoom_out;
+   Button zoom_In, zoom_out,findRoute;
    SearchView searchView;
+
+   Boolean routeMode= false,clearOn= true;
    private GoogleMap mMap;
-   Marker marker;
+   Marker marker , markerFirst,markerSecond;
    Geocoder geocoder;
    CameraUpdate centre, zoom;
    List<Address> myAddress;
@@ -62,6 +64,7 @@ public class MapsActivity extends FragmentActivity {
       setContentView(R.layout.activity_maps);
       zoom_In = findViewById(R.id.zoomIn);
       zoom_out = findViewById(R.id.zoomOut);
+      findRoute = findViewById(R.id.routeBtn);
       spinner = (Spinner) findViewById(R.id.spinner);
       searchView = findViewById(R.id.search_bar);
       ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity.this,
@@ -84,12 +87,27 @@ public class MapsActivity extends FragmentActivity {
          //                                          int[] grantResults)
          // to handle the case where the user grants the permission. See the documentation
          // for ActivityCompat#requestPermissions for more details.
+
          getCurrentLocation();
+
          return;
       } else {
          ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
 
       }
+      findRoute.setOnClickListener(new View.OnClickListener() {
+         @Override
+         public void onClick(View v) {
+            clearOn = true;
+            getCurrentLocation();
+            Log.d("TAG", "onClick: " + "hello");
+            if (routeMode){
+               routeMode=false;
+            }else {
+               routeMode=true;
+            }
+         }
+      });
 
 
    }
@@ -110,21 +128,20 @@ public class MapsActivity extends FragmentActivity {
 //      mMap.setMyLocationEnabled(true);
 
       Task<Location> task = fusedLocationProviderClient.getLastLocation();
-
       task.addOnSuccessListener(new OnSuccessListener<Location>() {
          @Override
          public void onSuccess(Location location) {
-            if (location != null) mapFragment.getMapAsync(new OnMapReadyCallback() {
-               @Override
-               public void onMapReady(GoogleMap googleMap) {
+            if (location != null)
+               mapFragment.getMapAsync(new OnMapReadyCallback() {
 
-
+               @Override public void onMapReady(GoogleMap googleMap) {
                   LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                   try {
                      myAddress = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                   } catch (IOException ioException) {
                      ioException.printStackTrace();
                   }
+
                   String address = myAddress.get(0).getAddressLine(0);
                   MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(address);
                   googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
@@ -132,22 +149,23 @@ public class MapsActivity extends FragmentActivity {
 
 
                   googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                     int count = 0;
                      @Override
                      public void onMapClick(LatLng latlng) {
+                        Log.d("TAG", "onMapClick: " + routeMode);
                         // TODO Auto-generated method stub
-
+                     if (!routeMode) {
                         if (marker != null) {
                            marker.remove();
                         }
-
                         try {
-                           myAddress = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
+                              myAddress = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
                         } catch (IOException ioException) {
                            ioException.printStackTrace();
                         }
-                        String address = myAddress.get(0).getFeatureName();
+//                        String address = myAddress.get(0).getFeatureName();
                         Log.d("address", "onMapClick: " + myAddress.get(0).getAdminArea() + "  " + myAddress.get(0).getSubAdminArea() +
-                                "     p " + myAddress.get(0).getPremises() + "  myAddress" + myAddress + "    SUBlOCALOITY" + myAddress.get(0).getSubLocality() + "  FACE" + myAddress.get(0).getThoroughfare());
+                                "     p " + myAddress.get(0).getPremises() + "  myAddress" + myAddress + "    SUBLOCALOITY" + myAddress.get(0).getSubLocality() + "  FACE" + myAddress.get(0).getThoroughfare());
                         marker = googleMap.addMarker(new MarkerOptions()
                                 .position(latlng)
                                 .title(myAddress.get(0).getAddressLine(0))
@@ -158,9 +176,46 @@ public class MapsActivity extends FragmentActivity {
                         googleMap.moveCamera(centre);
                         googleMap.animateCamera(zoom);
                         System.out.println(latlng);
+                     }
+                     else{
+                               if (clearOn){
+                                  googleMap.clear();
+                               }
+                           if (count<2){
+                              clearOn=false;
+                              LatLng first = null;
+                              LatLng second = null;
+                         if (count==0) {
+
+                            first = new LatLng(latlng.latitude, latlng.longitude);
+                            markerFirst = googleMap.addMarker(new MarkerOptions()
+                                    .position(first)
+                                    .title(myAddress.get(0).getAddressLine(0))
+                                    .icon(BitmapDescriptorFactory
+                                            .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                            Log.d("LatLng", "onMapClick:1 " + first);
+                         }
+                              if (count==1){
+                                    second = new LatLng(latlng.latitude, latlng.longitude);
+                                   markerSecond = googleMap.addMarker(new MarkerOptions()
+                                           .position(second)
+                                           .title(myAddress.get(0).getAddressLine(0))
+                                           .icon(BitmapDescriptorFactory
+                                                   .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                                   Log.d("LatLng", "onMapClick: 2 "+ second  );
+
+                             }
+//                              Log.d("LatLng", "onMapClick:123 "+ first  + " " + second);
+                              count++;
+                           }else {
+                              googleMap.clear();
+                              count=0;
+                           }
 
                      }
+                     }
                   });
+
 
                   spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -169,7 +224,7 @@ public class MapsActivity extends FragmentActivity {
                         switch (position) {
                            case 0:
                               googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                              googleMap.setBuildingsEnabled(true);
+//                              googleMap.setBuildingsEnabled(true);
                               // Whatever you want to happen when the first item gets selected
                               break;
                            case 1:
@@ -185,7 +240,6 @@ public class MapsActivity extends FragmentActivity {
                            case 3:
                               googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
                               break;
-
                         }
                      }
 
@@ -194,6 +248,9 @@ public class MapsActivity extends FragmentActivity {
                         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                      }
                   });
+
+
+
                   zoom_In.setOnClickListener(new View.OnClickListener() {
                      @Override
                      public void onClick(View v) {
@@ -206,6 +263,9 @@ public class MapsActivity extends FragmentActivity {
                         googleMap.animateCamera(CameraUpdateFactory.zoomOut());
                      }
                   });
+
+
+
                   searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                      @Override
                      public boolean onQueryTextSubmit(String query) {

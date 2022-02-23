@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
       if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
          ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
 //         requestPermission(MainActivity.this,PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
          return;
       }else{
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
          public void onClick(View view) {
             if (isConnected()) {
                Toast.makeText(getApplicationContext(), "Internet Connected", Toast.LENGTH_SHORT).show();
-               startActivity(new Intent(MainActivity.this,MapsActivity.class));
+               startActivity(new Intent(MainActivity.this,Find_Distance_Activity.class));
 
             } else {
                Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
