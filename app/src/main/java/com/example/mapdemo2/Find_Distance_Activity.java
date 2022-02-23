@@ -112,22 +112,22 @@ public class Find_Distance_Activity extends FragmentActivity implements OnMapRea
                   distance = distance + SphericalUtil.computeDistanceBetween(latLng,first);
                   tv_distance.setText(distance/1000+ "   " );
                }
-               btn_Undo.setOnClickListener(new View.OnClickListener() {
-                  @Override
-                  public void onClick(View v) {
-                     if (latLng_List.size()>0){
-                        try {
-                           latLng_List.remove(latLng_List.size()-1);
-                           marker.v( );
-
-                        }
-                        catch (ArrayIndexOutOfBoundsException  e){
-                           e.printStackTrace();
-
-                        }
-                     }
-                  }
-               });
+//               btn_Undo.setOnClickListener(new View.OnClickListener() {
+//                  @Override
+//                  public void onClick(View v) {
+//                     if (latLng_List.size()>0){
+//                        try {
+//                           latLng_List.remove(latLng_List.size()-1);
+////                           marker.v( );
+//
+//                        }
+//                        catch (ArrayIndexOutOfBoundsException  e){
+//                           e.printStackTrace();
+//
+//                        }
+//                     }
+//                  }
+//               });
 //            }
 //            else {
 //            latLng_List.clear();
