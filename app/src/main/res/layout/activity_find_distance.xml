@@ -8,10 +8,8 @@
     <RelativeLayout
         android:id="@+id/mapHolder"
         android:layout_width="0dp"
-        android:layout_height="@dimen/_450sdp"
-        android:layout_marginTop="@dimen/_12sdp"
-        app:layout_constraintBottom_toTopOf="@+id/distanceView"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="match_parent"
+         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0">
@@ -25,20 +23,26 @@
 
     </RelativeLayout>
 
+
+
+    <Button
+        android:id="@+id/btnUndo"
+        android:layout_width="@dimen/_70sdp"
+        android:layout_height="@dimen/_50sdp"
+        android:text="Undo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.95"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.96" />
     <TextView
+        android:background="@color/white"
         android:id="@+id/distanceView"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_32sdp"
+        android:layout_marginBottom="@dimen/_12sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="@dimen/_12sdp"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:text="Undo"
-        android:id="@+id/btnUndo"
-        android:layout_width="@dimen/_50sdp"
-        android:layout_height="@dimen/_50sdp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mapHolder" />
 </androidx.constraintlayout.widget.ConstraintLayout>
