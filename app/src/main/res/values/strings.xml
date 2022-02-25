@@ -3,7 +3,8 @@
     <string name="title_activity_maps">MapsActivity</string>
     <string name="title_activity_maps2">MapsActivity2</string>
     <string name="title_activity_find_distance">Find_Distance_Activity</string>
-    <string name="api_Key">AIzaSyBCEK76PVAr2KwoDy1B_60xfi0DRJZsqCY</string>
+    <string name="api_Key">AIzaSyDvuH_pG-kn1XZsYvKkiu-RxLeEK9G-9NY</string>
+    <string name="title_activity_display_route">Display_Route_Activity</string>
 
 
 </resources>

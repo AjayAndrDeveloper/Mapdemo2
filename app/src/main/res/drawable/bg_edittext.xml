@@ -3,6 +3,6 @@
     <corners android:radius="@dimen/_5sdp" />
     <stroke android:width="@dimen/_2sdp" android:color="@color/teal_200" android:dashGap="@dimen/_2sdp" android:dashWidth="@dimen/_5sdp"
         />
-
+<solid android:color="@color/white"/>
 
 </shape>

@@ -19,7 +19,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION =100 ;
    private static final int ERROR_DIALOG_REQUEST =1010 ;
-   Button btn_distance,btn_mainMap;
+   Button btn_distance,btn_mainMap,btn_find_Route;
    boolean mLocationPermissionGranted;
    private static final int PERMISSIONS_REQUEST_ENABLE_GPS = 100;
    @Override
@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
       setContentView(R.layout.activity_main);
       btn_distance = findViewById(R.id.btn_distance);
       btn_mainMap = findViewById(R.id.btn_mainMap);
+      btn_find_Route = findViewById(R.id.find_route);
 
 
 
@@ -66,6 +67,19 @@ public class MainActivity extends AppCompatActivity {
                startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
             }
 
+         }
+      });
+      btn_find_Route.setOnClickListener(new View.OnClickListener() {
+         @Override
+         public void onClick(View v) {
+            if (isConnected()) {
+               Toast.makeText(getApplicationContext(), "Internet Connected", Toast.LENGTH_SHORT).show();
+               startActivity(new Intent(MainActivity.this,Display_Route_Activity.class));
+
+            } else {
+               Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
+               startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+            }
          }
       });
 
