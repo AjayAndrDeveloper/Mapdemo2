@@ -1,5 +1,7 @@
 package com.example.mapdemo2.Helpers;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -10,9 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by Vishal on 10/20/2018.
- */
+
 
 public class DataParser {
    public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
@@ -21,6 +21,8 @@ public class DataParser {
       JSONArray jRoutes;
       JSONArray jLegs;
       JSONArray jSteps;
+      JSONObject jDuration;
+      String duration;
       try {
          jRoutes = jObject.getJSONArray("routes");
          /** Traversing all routes */
@@ -30,7 +32,9 @@ public class DataParser {
             /** Traversing all legs */
             for (int j = 0; j < jLegs.length(); j++) {
                jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
-
+               jDuration = ((JSONObject) jLegs.get(j)).getJSONObject("duration");
+                 duration = jDuration.getString("text");
+               Log.d("TAG", "parse:Duration : " + duration);
                /** Traversing all steps */
                for (int k = 0; k < jSteps.length(); k++) {
                   String polyline = "";

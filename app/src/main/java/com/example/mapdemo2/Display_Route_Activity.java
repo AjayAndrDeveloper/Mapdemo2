@@ -7,14 +7,18 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,20 +34,19 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.mapdemo2.databinding.ActivityDisplayRouteBinding;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.GeoPoint;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -55,10 +58,15 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
    EditText et_Location;
    Button btn_getDirection;
    Geocoder geocoder;
-   TextView tv_location;
+   TextView tv_distance;
    String str_location;
    MarkerOptions starting_Location, destination_Location;
    Polyline currentPolyline;
+   Marker marker;
+   Spinner spinner;
+   String mode;
+   List<Address> myAddress;
+   private static final String[] drivingModes = {"DRIVING", "WALKING", "TRANSIT"};
 
    FusedLocationProviderClient fusedLocationProviderClient;
 
@@ -66,16 +74,44 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.activity_display_route);
-
       fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
       fetchLocation();
       et_Location = findViewById(R.id.et_location);
       btn_getDirection = findViewById(R.id.btn_getDirection);
-      tv_location = findViewById(R.id.tv_location);
+      tv_distance = findViewById(R.id.tv_distance);
+      spinner = findViewById(R.id.drivingModeOptions);
       str_location = et_Location.getText().toString();
       geocoder = new Geocoder(Display_Route_Activity.this, Locale.getDefault());
+      ArrayAdapter<String> adapter = new ArrayAdapter<String>(Display_Route_Activity.this,
+              android.R.layout.simple_spinner_item, drivingModes);
+      spinner.setAdapter(adapter);
 
+      spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+         @Override
+         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            switch (position) {
+               case 0:
 
+                  mode = "driving";
+                  Toast.makeText(Display_Route_Activity.this, mode + " Clicked", Toast.LENGTH_SHORT).show();
+                  break;
+               case 1:
+
+                  mode = "walking";
+                  Toast.makeText(Display_Route_Activity.this, mode + " Clicked", Toast.LENGTH_SHORT).show();
+                  break;
+               case 2:
+                  mode = "TRANSIT";
+                  Toast.makeText(Display_Route_Activity.this, mode + " Clicked", Toast.LENGTH_SHORT).show();
+            }
+         }
+
+         @Override
+         public void onNothingSelected(AdapterView<?> parent) {
+            Toast.makeText(Display_Route_Activity.this, "Driving", Toast.LENGTH_SHORT).show();
+            mode = "driving";
+         }
+      });
       // Obtain the SupportMapFragment and get notified when the map is ready to be used.
       SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
               .findFragmentById(R.id.route_map_fragment);
@@ -100,7 +136,13 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                if (currentLocation != null) {
 
-                  mMap.addMarker(new MarkerOptions().position(currentLatLng));
+                  try {
+                     myAddress = geocoder.getFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+                     String address = myAddress.get(0).getAddressLine(0);
+                     mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)).position(currentLatLng).title(address));
+                  } catch (IOException ioException) {
+                     ioException.printStackTrace();
+                  }
                   mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                           new LatLng(currentLocation.getLatitude(),
                                   currentLocation.getLongitude()), 15));
@@ -111,13 +153,12 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
                mMap.addMarker(new MarkerOptions().position(currentLatLng));
                mMap.moveCamera(CameraUpdateFactory
                        .newLatLngZoom(new LatLng(currentLocation.getLatitude(),
-                               currentLocation.getLongitude()), 15));
+                               currentLocation.getLongitude()), 20));
                mMap.getUiSettings().setMyLocationButtonEnabled(false);
             }
          }
       });
    }
-
 
 
    /**
@@ -137,10 +178,13 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
          @Override
          public void onClick(View v) {
             str_location = et_Location.getText().toString();
-            tv_location.setText(str_location);
+//            tv_location.setText(str_location);
 
 
             List<Address> addressList = null;
+            if (marker != null) {
+               marker.remove();
+            }
             if (str_location != null && !str_location.equals("")) {
                try {
                   Log.d("hello", "onClick: " + str_location);
@@ -153,67 +197,30 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
                   Address address = addressList.get(0);
                   destination_LatLng = new LatLng(address.getLatitude(), address.getLongitude());
                   Log.d("location_dest", "onClick: " + destination_LatLng + " " + currentLatLng);
-                  googleMap.addMarker(new MarkerOptions().position(destination_LatLng).title(str_location));
-                  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination_LatLng, 10));
+                  marker = googleMap.addMarker(new MarkerOptions().position(destination_LatLng).title(str_location).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+                  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination_LatLng, 15));
                   Log.d("jio", "onClick: " + " " + currentLatLng + "  " + destination_LatLng);
                   starting_Location = new MarkerOptions().position(currentLatLng).title("starting Location");
                   destination_Location = new MarkerOptions().position(destination_LatLng).title("Destination Location");
-                  String url = getUrl(starting_Location.getPosition(), destination_Location.getPosition(), "driving");
-                  new FetchURL(Display_Route_Activity.this).execute(url,"driving");
-                  Log.d("url", "onClick: " + url);
+
+                  String url = getUrl(starting_Location.getPosition(), destination_Location.getPosition(), mode);
+                  new FetchURL(Display_Route_Activity.this).execute(url, mode);
+                  details();
+                  Log.d("url", "onClick: " + url + "  " + mode);
 
                } catch (Exception e) {
                   Toast.makeText(Display_Route_Activity.this, "Location not found", Toast.LENGTH_SHORT).show();
                }
 
+            } else {
+               Toast.makeText(Display_Route_Activity.this, "Please enter the location", Toast.LENGTH_SHORT).show();
             }
 
          }
 
-         private String getUrl(LatLng position, LatLng position1, String directionMode) {
-            String str_origin = "origin=" + currentLocation.getLatitude() + "," + currentLocation.getLongitude();
-            String str_dest = "destination=" + destination_LatLng.latitude + "," + destination_LatLng.longitude;
-            String mode = "mode=" + directionMode;
-            String paraMeter = str_origin + "&" + str_dest + "&" + mode;
-            String output = "json";
 
-//
-//            Volley.newRequestQueue()
-//            Volley.newRequestQueue(Display_Route_Activity.this).add(new StringRequest("https://maps.googleapis.com/maps/api/directions/json?origin=" +currentLocation.getLatitude() + "," +
-//                    currentLocation.getLongitude() + "&destination=" +destination_LatLng.latitude + "," + destination_LatLng.longitude + "&mode=" + mode + "&key=AIzaSyBCEK76PVAr2KwoDy1B_60xfi0DRJZsqCY", new Response.Listener<String>() {
-//               public void onResponse(String str) {
-//                  try {
-//                     JSONObject jSONObject = new JSONObject(str);
-//                     int i = 0;
-//                     if (jSONObject.getString(NotificationCompat.CATEGORY_STATUS).equals("OK")) {
-//                        JSONArray jSONArray = jSONObject.getJSONArray("routes");
-//                        if (jSONArray != null) {
-//                           JSONObject jSONObject2 = jSONArray.getJSONObject(0).getJSONArray("legs").getJSONObject(0);
-//                           tv_location.setText("( " + jSONObject2.getJSONObject("distance").getString("text") + " )");
-////                           timeText.setText(jSONObject2.getJSONObject("duration").getString("text"));
-////                           ((TextView) findViewById(R.id.distance)).setText("( " + jSONObject2.getJSONObject("distance").getString("text") + " )");
-////                           ((TextView) findViewById(R.id.minutes)).setText(jSONObject2.getJSONObject("duration").getString("text"));
-//                           String str2 = "duration";
-//                        }
-//                     }
-//                  } catch (Exception e) {
-//                     Log.d("TAG", "onResponse: Exception " + e.getMessage());
-//                     Toast.makeText(Display_Route_Activity.this, "Try Exception", Toast.LENGTH_SHORT).show();
-//                  }
-//               }
-//
-//         }, new Response.ErrorListener() {
-//               public void onErrorResponse(VolleyError volleyError) {
-//                  Toast.makeText(Display_Route_Activity.this, "Unable to Find Route", Toast.LENGTH_SHORT).show();
-//               }
-//            }));
-
-
-            String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + paraMeter + "&key=" + getString(R.string.api_Key);
-            return url;
-
-         }
       });
+//
 
       // Add a marker in Sydney and move the camera
 //      LatLng sydney = new LatLng(-34, 151);
@@ -221,10 +228,63 @@ public class Display_Route_Activity extends FragmentActivity implements OnMapRea
 //      mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
    }
 
+   private void details() {
+//      Volley.newRequestQueue(Display_Route_Activity.this);
+      Volley.newRequestQueue(Display_Route_Activity.this).add(new StringRequest("https://maps.googleapis.com/maps/api/directions/json?origin=" + currentLocation.getLatitude() + "," +
+              currentLocation.getLongitude() + "&destination=" + destination_LatLng.latitude + "," + destination_LatLng.longitude + "&mode=" + mode + "&key=AIzaSyDvuH_pG-kn1XZsYvKkiu-RxLeEK9G-9NY", new Response.Listener<String>() {
+         public void onResponse(String str) {
+            try {
+               JSONObject jSONObject = new JSONObject(str);
+               JSONObject jDuration, jDistance;
+
+               int i = 0;
+               if (jSONObject.getString(NotificationCompat.CATEGORY_STATUS).equals("OK")) {
+                  //getting routes JSONARRAY
+                  JSONArray jSONArray = jSONObject.getJSONArray("routes");
+                  if (jSONArray != null) {
+                     // FROM ROUTE WE GETTING LEGS JSONARRAY
+                     JSONArray legsArray = jSONArray.getJSONObject(0).getJSONArray("legs");
+                     // FROM LEGSARRAY WE GET JSONOBJECT THE FROMTHIS OBJECT WE GET STRING OF DISTANCE & DURATION
+                     JSONObject jSONObject2 = legsArray.getJSONObject(0);
+                     jDistance = jSONObject2.getJSONObject("distance");
+                     jDuration = jSONObject2.getJSONObject("duration");
+                     String distance = jDistance.getString("text");
+                     String duration = jDuration.getString("text");
+                     Log.d("TAG", "onResponse: " + jSONObject2.toString());
+                     tv_distance.setText(distance);
+                     Log.d("TAG", "onResponse: Duration : " + duration);
+                     ((TextView) findViewById(R.id.tv_duration)).setText(duration);
+                  }
+               }
+            } catch (Exception e) {
+               Log.d("TAG", "onResponse: Exception " + e.getMessage());
+               Toast.makeText(Display_Route_Activity.this, "Try Exception", Toast.LENGTH_SHORT).show();
+            }
+         }
+
+      }, new Response.ErrorListener() {
+         public void onErrorResponse(VolleyError volleyError) {
+            Toast.makeText(Display_Route_Activity.this, "Unable to Find Route", Toast.LENGTH_SHORT).show();
+         }
+      }));
+
+   }
+
+   private String getUrl(LatLng origin, LatLng destination, String directionMode) {
+      String str_origin = "origin=" + currentLocation.getLatitude() + "," + currentLocation.getLongitude();
+      String str_dest = "destination=" + destination_LatLng.latitude + "," + destination_LatLng.longitude;
+      String mode = "mode=" + directionMode;
+      String paraMeter = str_origin + "&" + str_dest + "&" + mode;
+      String output = "json";
+      String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + paraMeter + "&key=" + getString(R.string.api_Key);
+      return url;
+   }
+
    @Override
    public void onTaskDone(Object... values) {
-      if (currentPolyline!=null)
+      if (currentPolyline != null)
+
          currentPolyline.remove();
-      currentPolyline = mMap.addPolyline((PolylineOptions) values[0] );
+      currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
    }
 }

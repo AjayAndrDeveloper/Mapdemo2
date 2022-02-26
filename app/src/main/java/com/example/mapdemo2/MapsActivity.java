@@ -2,7 +2,6 @@ package com.example.mapdemo2;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
@@ -10,8 +9,6 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,14 +20,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -39,15 +33,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.RectangularBounds;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 //import com.example.mapdemo2.databinding.ActivityMapsBinding;
@@ -64,7 +51,7 @@ public class MapsActivity extends FragmentActivity {
    List<Address> myAddress;
    SupportMapFragment mapFragment;
    private Spinner spinner;
-   private static final String[] paths = {"NORMAL MAP ", "HYBRID MAP", "SATELLITE MAP", "TERRAIN MAP"};
+   private static final String[] mapTypes = {"NORMAL MAP ", "HYBRID MAP", "SATELLITE MAP", "TERRAIN MAP"};
    FusedLocationProviderClient fusedLocationProviderClient;
 
    @Override
@@ -77,7 +64,7 @@ public class MapsActivity extends FragmentActivity {
       spinner = (Spinner) findViewById(R.id.spinner);
       searchView = findViewById(R.id.search_bar);
       ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity.this,
-              android.R.layout.simple_spinner_item, paths);
+              android.R.layout.simple_spinner_item, mapTypes);
       spinner.setAdapter(adapter);
       geocoder = new Geocoder(MapsActivity.this, Locale.getDefault());
 

@@ -14,9 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by Vishal on 10/20/2018.
- */
+
 
 public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
    TaskLoadedCallback taskCallback;
@@ -38,12 +36,15 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
          jObject = new JSONObject(jsonData[0]);
          Log.d("mylog", jsonData[0].toString());
          DataParser parser = new DataParser();
+
+
          Log.d("mylog", parser.toString());
 
          // Starts parsing data
          routes = parser.parse(jObject);
          Log.d("mylog", "Executing routes");
          Log.d("mylog", routes.toString());
+
 
       } catch (Exception e) {
          Log.d("mylog", e.toString());
@@ -57,7 +58,8 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
    protected void onPostExecute(List<List<HashMap<String, String>>> result) {
       ArrayList<LatLng> points;
       PolylineOptions lineOptions = null;
-      // Traversing through all the routes
+      // Traversing through all the routes'
+      Log.d("result123", "onPostExecute: " + result);
       for (int i = 0; i < result.size(); i++) {
          points = new ArrayList<>();
          lineOptions = new PolylineOptions();
@@ -74,11 +76,14 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
          // Adding all the points in the route to LineOptions
          lineOptions.addAll(points);
          if (directionMode.equalsIgnoreCase("walking")) {
-            lineOptions.width(10);
+            lineOptions.width(15);
             lineOptions.color(Color.MAGENTA);
-         } else {
-            lineOptions.width(20);
-            lineOptions.color(Color.BLUE);
+         } else if(directionMode.equalsIgnoreCase("driving")) {
+            lineOptions.width(15);
+            lineOptions.color(Color.RED);
+         }else if(directionMode.equalsIgnoreCase("TRANSIT")) {
+            lineOptions.width(15);
+            lineOptions.color(Color.LTGRAY);
          }
          Log.d("mylog", "onPostExecute lineoptions decoded");
       }
